@@ -1,0 +1,131 @@
+<head>
+  <style type="text/css">
+    body {
+      background-position: top left;
+      background-repeat: no-repeat;
+    }
+    .n {
+      width: 32px;
+      height: 48px;
+      display: block;
+      xborder: 1px solid #F00;
+      position: absolute;
+      top: 10px;
+    }
+    .n { background: url('Nobita.png') no-repeat -128px -96px; }
+    .r { background-position: -32px -96px; }
+    .r.s1 { background-position: 0 -96px; }
+    .r.s3 { background-position: -64px -96px; }
+    .d.s1 { background-position: 0 0; }
+    .d { background-position: -32px 0; }
+    .d.s3 { background-position: -64px 0; }
+    .l.s1 { background-position: 0 -48px; }
+    .l { background-position: -32px -48px; }
+    .l.s3 { background-position: -64px -48px; }
+    .u.s1 { background-position: 0 -144px; }
+    .u { background-position: -32px -144px; }
+    .u.s3 { background-position: -64px -144px; }
+
+  </style>
+  <xscript src='jquery.min.js'></xscript>
+</head>
+<body>
+  <div id='pos'></div>
+  <div id='p' class='n'></div>
+<script type="text/javascript">
+  function Rect(l,t,r,b) {
+    this.left = l;
+    this.top = t;
+    this.right = r
+    this.bottom = b;
+  };
+  Rect.prototype.containsXY = function(x,y) {
+    return (this.left <= x && x < this.right) && (this.top <= y && y < this.bottom)
+  };
+
+  levels = [
+    {src: 'map.png', start: new Rect(488,12,488+12,12+12), finish: new Rect(152,432,176,456)},
+    {src: 'nunkun.png', start: new Rect(456,36,456+12,36+12), finish: new Rect(100,100,200,200)}
+  ];
+  level = 0;
+
+  function getLevel() {
+    return levels[level % levels.length] || levels[0];
+  };
+
+  player = {
+    e: document.getElementById('p'),
+    cycle: ['s1','s2','s3','s2'],
+    dir: 'l',
+    x: 32,
+    y: 32,
+    step: 0,
+    speed: 12,
+
+    onkeydown: function(evt) {
+      this.dx = 0; this.dy = 0;
+      switch (evt.keyIdentifier) {
+        case 'Up':
+          this.dy = -1;
+          this.dir = 'u';
+          break;
+        case 'Down':
+          this.dy = 1;
+          this.dir = 'd';
+          break;
+        case 'Left':
+          this.dx = -1;
+          this.dir = 'l';
+          break;
+        case 'Right':
+          this.dx = 1;
+          this.dir = 'r';
+          break;
+      }
+      if (this.dx || this.dy) {
+        this.step += 1;
+        this.x += this.dx*this.speed;
+        this.y += this.dy*this.speed;
+        this.render();
+      }
+    },
+
+    render: function () {
+      s = this.cycle[this.step % this.cycle.length];
+      this.e.className = "n "+this.dir+' '+s;
+      this.e.style.left = this.x+'px';
+      this.e.style.top = this.y+'px';
+    }
+  };
+
+
+
+  function updateLevel() {
+    var l = getLevel();
+    if (l.finish && l.finish.containsXY(player.x, player.y)) {
+      level += 1;
+      l = getLevel();
+      player.x = l.start.left; player.y = l.start.top;
+      player.render();
+    } else if (level > 0 && l.start && l.start.containsXY(player.x, player.y)) {
+      level -= 1;
+      l = getLevel();
+      player.x = l.finish.left; player.y = l.finish.top;
+      player.render();
+    }
+    document.body.style.backgroundImage = 'url('+l.src+')';
+
+  }
+  updateLevel();
+
+  l = getLevel();
+  player.x = l.start.left; player.y = l.start.top;
+  player.render();
+
+  window.onkeydown = function(evt) {
+    player.onkeydown(evt);
+    updateLevel();
+    document.getElementById('pos').innerHTML = player.x+','+player.y;
+  }
+</script>
+</body>
